@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const jwt = require('jsonwebtoken');
 require("dotenv").config();
 const PORT = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -27,12 +28,32 @@ async function run() {
   try {
     await client.connect();
     const BlogCollections = client.db("flexiblog").collection("blogs");
+    const UserCollections = client.db("flexiblog").collection("users");
 
     // get all blogs load
     app.get("/blogs", async (req, res) => {
       const result = await BlogCollections.find().toArray();
       res.send(result);
     });
+
+    // get all users load
+    app.get("/users", async (req, res) => {
+      const result = await UserCollections.find().toArray();
+      res.send(result);
+    });
+
+    // get just one blog  load by _id..get valid _id
+    app.get("/blog/:id([0-9a-fA-F]{24})", async (req, res) => {
+        const id = req.params.id;
+        const query = {_id:ObjectId(id)};
+      const result = await BlogCollections.findOne(query);
+      res.send(result);
+    });
+
+    app.post('/login', async(req, res)=>{
+      const user = req.body;
+      console.log('user', user)
+    })
 
 
   } finally {
