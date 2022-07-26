@@ -60,19 +60,36 @@ async function run() {
       }
     };
 
+    //check admin API
+    app.get("/admin/:email", async(req, res)=>{
+      const email = req.params.email;
+      const user = await UserCollections.findOne({email: email});
+      const isAdmin = user.role === "admin";
+      res.send({admin: isAdmin});
+    })
+
     // make admin API
     app.put("/user/admin/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
-      const filter = { email: email };
-      const updateDoc = {
-        $set: {
-          role: "admin",
-        },
-      };
-
-      const result = await UserCollections.updateOne(filter, updateDoc);
-      res.send(result);
+      const requester = req.decoded.email;
+      const requesterAccount = await UserCollections.findOne({
+        email: requester,
+      });
+      if (requesterAccount.role === "admin") {
+        const filter = { email: email };
+        const updateDoc = {
+          $set: {
+            role: "admin",
+          },
+        };
+        const result = await UserCollections.updateOne(filter, updateDoc);
+        res.send(result);
+      } else {
+        res.status(403).send({ message: "Forbidden" });
+      }
     });
+
+    
 
     // get all blogs load
     app.get("/blogs", async (req, res) => {
@@ -81,7 +98,7 @@ async function run() {
     });
 
     // get all users load
-    app.get("/users",  async (req, res) => {
+    app.get("/users", async (req, res) => {
       const result = await UserCollections.find().toArray();
       res.send(result);
     });
