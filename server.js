@@ -61,7 +61,7 @@ async function run() {
     };
 
     //check admin API
-    app.get("/admin/:email", async(req, res)=>{
+    app.get("/admin/:email",  async(req, res)=>{
       const email = req.params.email;
       const user = await UserCollections.findOne({email: email});
       const isAdmin = user.role === "admin";
@@ -69,7 +69,7 @@ async function run() {
     })
 
     // make admin API
-    app.put("/user/admin/:email", verifyJWT, async (req, res) => {
+    app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
       const requester = req.decoded.email;
       const requesterAccount = await UserCollections.findOne({
@@ -98,7 +98,7 @@ async function run() {
     });
 
     // get all users load
-    app.get("/users", async (req, res) => {
+    app.get("/users",  async (req, res) => {
       const result = await UserCollections.find().toArray();
       res.send(result);
     });
