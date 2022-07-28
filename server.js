@@ -99,34 +99,27 @@ async function run() {
 
     // get all users load
     app.get("/users",  async (req, res) => {
+      // const decodedEmail = req.decoded.email;
       const result = await UserCollections.find().toArray();
       res.send(result);
     });
 
-    // step 1 => update one by one user specific by email..
-    // step 2 => save registered user in db
-    // step 3 => after completing all above this, giving every user a jwt token..
 
-    app.put("/user/:email", async (req, res) => {
+    // giving every registered user a jwt token
+    app.put('/user/:email', async (req, res) => {
       const email = req.params.email;
-      const filter = { email: email };
       const user = req.body;
+      const filter = { email: email };
       const options = { upsert: true };
       const updateDoc = {
         $set: user,
       };
-
-      const result = await UserCollections.updateOne(
-        filter,
-        updateDoc,
-        options
-      );
-      // giving every user a jwt token
-      const token = jwt.sign({ email: email }, process.env.JWT_TOKEN, {
-        expiresIn: "1h",
-      });
+      const result = await UserCollections.updateOne(filter, updateDoc, options);
+      // giving the token
+      const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
       res.send({ result, accessToken: token });
     });
+
 
     // get just one blog  load by _id..get valid _id
     app.get("/blog/:id([0-9a-fA-F]{24})", async (req, res) => {
